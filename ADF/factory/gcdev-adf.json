@@ -1,0 +1,9 @@
+{
+	"name": "gcdev-adf",
+	"location": "uksouth",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "193e8162-00d0-44de-8b87-1f3d9aee9f43",
+		"tenantId": "8c3350c5-de17-460b-9cac-d8bf0f1257dd"
+	}
+}

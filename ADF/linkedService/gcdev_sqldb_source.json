@@ -1,0 +1,24 @@
+{
+	"name": "gcdev_sqldb_source",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "gcdev-sqldbserver.database.windows.net",
+			"database": "gcdev-sqldb",
+			"encrypt": "mandatory",
+			"trustServerCertificate": false,
+			"authenticationType": "SQL",
+			"userName": "sqladmin",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVault1",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "database-source-password"
+			}
+		}
+	}
+}
