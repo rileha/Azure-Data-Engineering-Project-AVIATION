@@ -9,9 +9,6 @@
 			"container": {
 				"type": "string"
 			},
-			"directory": {
-				"type": "string"
-			},
 			"filename": {
 				"type": "string"
 			}
