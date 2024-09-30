@@ -1,0 +1,119 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "gcdev-adf"
+		},
+		"AzureKeyVault1_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://gcdev-keyvault.vault.azure.net/"
+		},
+		"airlabs_rest_source_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://airlabs.co/api/v9/airlines"
+		},
+		"gcdev_sqldb_source_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "gcdev-sqldbserver.database.windows.net"
+		},
+		"gcdev_sqldb_source_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "gcdev-sqldb"
+		},
+		"gcdev_sqldb_source_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sqladmin"
+		},
+		"gcdevdevadls_sink_link_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://gcdevadlsdev.dfs.core.windows.net"
+		},
+		"gcdevdevadls_sink_link_properties_typeProperties_tenant": {
+			"type": "string",
+			"defaultValue": "8c3350c5-de17-460b-9cac-d8bf0f1257dd"
+		},
+		"gcdevdevadls_sink_link_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "d42c04c3-6a39-46d3-834f-95f83d18d7da"
+		},
+		"gcdevsourceadls_link_properties_typeProperties_url": {
+			"type": "string",
+			"defaultValue": "https://gcdevsourceadls.dfs.core.windows.net"
+		},
+		"gcdevsourceadls_link_properties_typeProperties_tenant": {
+			"type": "string",
+			"defaultValue": "8c3350c5-de17-460b-9cac-d8bf0f1257dd"
+		},
+		"gcdevsourceadls_link_properties_typeProperties_servicePrincipalId": {
+			"type": "string",
+			"defaultValue": "d42c04c3-6a39-46d3-834f-95f83d18d7da"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "gcdev-adf_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"AzureKeyVault1_properties_typeProperties_baseUrl": {
+						"value": "[parameters('AzureKeyVault1_properties_typeProperties_baseUrl')]"
+					},
+					"airlabs_rest_source_properties_typeProperties_url": {
+						"value": "[parameters('airlabs_rest_source_properties_typeProperties_url')]"
+					},
+					"gcdev_sqldb_source_properties_typeProperties_server": {
+						"value": "[parameters('gcdev_sqldb_source_properties_typeProperties_server')]"
+					},
+					"gcdev_sqldb_source_properties_typeProperties_database": {
+						"value": "[parameters('gcdev_sqldb_source_properties_typeProperties_database')]"
+					},
+					"gcdev_sqldb_source_properties_typeProperties_userName": {
+						"value": "[parameters('gcdev_sqldb_source_properties_typeProperties_userName')]"
+					},
+					"gcdevdevadls_sink_link_properties_typeProperties_url": {
+						"value": "[parameters('gcdevdevadls_sink_link_properties_typeProperties_url')]"
+					},
+					"gcdevdevadls_sink_link_properties_typeProperties_tenant": {
+						"value": "[parameters('gcdevdevadls_sink_link_properties_typeProperties_tenant')]"
+					},
+					"gcdevdevadls_sink_link_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('gcdevdevadls_sink_link_properties_typeProperties_servicePrincipalId')]"
+					},
+					"gcdevsourceadls_link_properties_typeProperties_url": {
+						"value": "[parameters('gcdevsourceadls_link_properties_typeProperties_url')]"
+					},
+					"gcdevsourceadls_link_properties_typeProperties_tenant": {
+						"value": "[parameters('gcdevsourceadls_link_properties_typeProperties_tenant')]"
+					},
+					"gcdevsourceadls_link_properties_typeProperties_servicePrincipalId": {
+						"value": "[parameters('gcdevsourceadls_link_properties_typeProperties_servicePrincipalId')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
