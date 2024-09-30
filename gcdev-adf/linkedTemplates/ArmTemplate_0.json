@@ -608,7 +608,7 @@
 																"type": "Expression"
 															},
 															"directory": {
-																"value": "@concat(split(item().File_name_sink, '.')[0], '/Date_Part=', formatDateTime(utcnow(), 'yyyy-MM-dd'))",
+																"value": "@concat('flight/Date_Part=', formatDateTime(utcnow(), 'yyyy-MM-dd'), '/', split(item().File_name_sink, '.')[0])\n",
 																"type": "Expression"
 															},
 															"filename": {
