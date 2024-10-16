@@ -1,0 +1,19 @@
+{
+	"name": "databricks_deltalake_link",
+	"properties": {
+		"annotations": [],
+		"type": "AzureDatabricksDeltaLake",
+		"typeProperties": {
+			"domain": "https://adb-117012687979539.19.azuredatabricks.net/",
+			"clusterId": "0925-165710-ivlx4nym",
+			"accessToken": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVault1",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "databricks-token"
+			}
+		}
+	}
+}
