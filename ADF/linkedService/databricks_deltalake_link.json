@@ -5,7 +5,7 @@
 		"type": "AzureDatabricksDeltaLake",
 		"typeProperties": {
 			"domain": "https://adb-117012687979539.19.azuredatabricks.net/",
-			"clusterId": "0925-165710-ivlx4nym",
+			"clusterId": "1017-093846-blt91uz2",
 			"accessToken": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
