@@ -153,6 +153,29 @@
 					},
 					"waitOnCompletion": true
 				}
+			},
+			{
+				"name": "08 - excel_to_email",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "04 - publish_to_sql",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "08 - excel_to_email",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
 			}
 		],
 		"parameters": {
