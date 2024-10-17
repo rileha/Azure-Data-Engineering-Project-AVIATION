@@ -1,0 +1,30 @@
+{
+	"name": "excel_source",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "blob_storage_source",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Excel",
+		"typeProperties": {
+			"sheetName": "Email_Sheet",
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "Email_Send.xlsx",
+				"container": "manualfiles"
+			},
+			"firstRowAsHeader": true
+		},
+		"schema": [
+			{
+				"name": "type",
+				"type": "String"
+			},
+			{
+				"name": "Email_ID",
+				"type": "String"
+			}
+		]
+	}
+}
