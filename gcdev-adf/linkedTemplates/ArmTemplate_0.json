@@ -338,7 +338,7 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "manual",
+						"name": "manual_notebook_runs",
 						"type": "DatabricksNotebook",
 						"dependsOn": [],
 						"policy": {
