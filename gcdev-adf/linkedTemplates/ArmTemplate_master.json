@@ -15,6 +15,10 @@
 			"type": "string",
 			"defaultValue": "https://airlabs.co/api/v9/airlines"
 		},
+		"databricks_link_properties_typeProperties_existingClusterId": {
+			"type": "string",
+			"defaultValue": "1017-093846-blt91uz2"
+		},
 		"gcdev_sqldb_source_properties_typeProperties_server": {
 			"type": "string",
 			"defaultValue": "gcdev-sqldbserver.database.windows.net"
@@ -95,6 +99,9 @@
 					},
 					"airlabs_rest_source_properties_typeProperties_url": {
 						"value": "[parameters('airlabs_rest_source_properties_typeProperties_url')]"
+					},
+					"databricks_link_properties_typeProperties_existingClusterId": {
+						"value": "[parameters('databricks_link_properties_typeProperties_existingClusterId')]"
 					},
 					"gcdev_sqldb_source_properties_typeProperties_server": {
 						"value": "[parameters('gcdev_sqldb_source_properties_typeProperties_server')]"

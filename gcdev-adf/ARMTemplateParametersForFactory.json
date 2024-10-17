@@ -11,6 +11,9 @@
 		"airlabs_rest_source_properties_typeProperties_url": {
 			"value": "https://airlabs.co/api/v9/airlines"
 		},
+		"databricks_link_properties_typeProperties_existingClusterId": {
+			"value": "1017-093846-blt91uz2"
+		},
 		"gcdev_sqldb_source_properties_typeProperties_server": {
 			"value": "gcdev-sqldbserver.database.windows.net"
 		},
