@@ -1,0 +1,36 @@
+{
+	"name": "07 - manual_notebook_run",
+	"properties": {
+		"activities": [
+			{
+				"name": "Notebook1",
+				"type": "DatabricksNotebook",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"notebookPath": {
+						"value": "@pipeline().parameters.notebook_paths",
+						"type": "Expression"
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "databricks_link",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"notebook_paths": {
+				"type": "string"
+			}
+		},
+		"annotations": []
+	}
+}
