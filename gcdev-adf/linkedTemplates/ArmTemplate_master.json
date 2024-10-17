@@ -67,6 +67,10 @@
 			"type": "string",
 			"defaultValue": "sqladmin"
 		},
+		"blob_storage_source_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "blob-source-connection"
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -138,6 +142,9 @@
 					},
 					"sqldatabase_sink_properties_typeProperties_userName": {
 						"value": "[parameters('sqldatabase_sink_properties_typeProperties_userName')]"
+					},
+					"blob_storage_source_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('blob_storage_source_properties_typeProperties_connectionString_secretName')]"
 					}
 				}
 			},

@@ -49,6 +49,9 @@
 		},
 		"sqldatabase_sink_properties_typeProperties_userName": {
 			"value": "sqladmin"
+		},
+		"blob_storage_source_properties_typeProperties_connectionString_secretName": {
+			"value": "blob-source-connection"
 		}
 	}
 }
