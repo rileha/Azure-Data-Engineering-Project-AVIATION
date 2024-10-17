@@ -13,14 +13,7 @@
 				},
 				"secretName": "databricks-token"
 			},
-			"newClusterNodeType": "Standard_DS3_v2",
-			"newClusterNumOfWorker": "1",
-			"newClusterSparkEnvVars": {
-				"PYSPARK_PYTHON": "/databricks/python3/bin/python3"
-			},
-			"newClusterVersion": "11.3.x-scala2.12",
-			"clusterOption": "Fixed",
-			"newClusterInitScripts": []
+			"existingClusterId": "1017-093846-blt91uz2"
 		}
 	}
 }
