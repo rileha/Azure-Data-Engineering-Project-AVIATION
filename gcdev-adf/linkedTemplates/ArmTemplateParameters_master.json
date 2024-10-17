@@ -38,6 +38,15 @@
 		"gcdevsourceadls_link_properties_typeProperties_servicePrincipalId": {
 			"value": "d42c04c3-6a39-46d3-834f-95f83d18d7da"
 		},
+		"sqldatabase_sink_properties_typeProperties_server": {
+			"value": "gcdev-sqlserverdev.database.windows.net"
+		},
+		"sqldatabase_sink_properties_typeProperties_database": {
+			"value": "gcdevsqldbdev"
+		},
+		"sqldatabase_sink_properties_typeProperties_userName": {
+			"value": "sqladmin"
+		},
 		"containerUri": {
 			"value": ""
 		},

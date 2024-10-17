@@ -51,6 +51,18 @@
 			"type": "string",
 			"defaultValue": "d42c04c3-6a39-46d3-834f-95f83d18d7da"
 		},
+		"sqldatabase_sink_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "gcdev-sqlserverdev.database.windows.net"
+		},
+		"sqldatabase_sink_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "gcdevsqldbdev"
+		},
+		"sqldatabase_sink_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sqladmin"
+		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -110,10 +122,39 @@
 					},
 					"gcdevsourceadls_link_properties_typeProperties_servicePrincipalId": {
 						"value": "[parameters('gcdevsourceadls_link_properties_typeProperties_servicePrincipalId')]"
+					},
+					"sqldatabase_sink_properties_typeProperties_server": {
+						"value": "[parameters('sqldatabase_sink_properties_typeProperties_server')]"
+					},
+					"sqldatabase_sink_properties_typeProperties_database": {
+						"value": "[parameters('sqldatabase_sink_properties_typeProperties_database')]"
+					},
+					"sqldatabase_sink_properties_typeProperties_userName": {
+						"value": "[parameters('sqldatabase_sink_properties_typeProperties_userName')]"
 					}
 				}
 			},
 			"dependsOn": []
+		},
+		{
+			"name": "gcdev-adf_ArmTemplate_1",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2024-03-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_1.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[resourceId('Microsoft.Resources/deployments', 'gcdev-adf_ArmTemplate_0')]"
+			]
 		}
 	]
 }
