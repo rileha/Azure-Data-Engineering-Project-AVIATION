@@ -15,6 +15,22 @@
 			"type": "string",
 			"defaultValue": "https://airlabs.co/api/v9/airlines"
 		},
+		"asasqldw_sink_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "gcdev-sqlserverdev.database.windows.net"
+		},
+		"asasqldw_sink_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "gcdevsqldw"
+		},
+		"asasqldw_sink_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sqladmin"
+		},
+		"blob_storage_source_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "blob-source-connection"
+		},
 		"databricks_link_properties_typeProperties_existingClusterId": {
 			"type": "string",
 			"defaultValue": "1017-093846-blt91uz2"
@@ -66,10 +82,6 @@
 		"sqldatabase_sink_properties_typeProperties_userName": {
 			"type": "string",
 			"defaultValue": "sqladmin"
-		},
-		"blob_storage_source_properties_typeProperties_connectionString_secretName": {
-			"type": "string",
-			"defaultValue": "blob-source-connection"
 		}
 	},
 	"variables": {
@@ -576,9 +588,9 @@
 											}
 										},
 										"sink": {
-											"type": "AzureSqlSink",
-											"writeBehavior": "insert",
-											"sqlWriterUseTableLock": false,
+											"type": "SqlDWSink",
+											"allowCopyCommand": true,
+											"copyCommandSettings": {},
 											"tableOption": "autoCreate",
 											"disableMetricsCollection": false
 										},
@@ -605,13 +617,10 @@
 									],
 									"outputs": [
 										{
-											"referenceName": "sqltable_sink",
+											"referenceName": "asasqldw_sink",
 											"type": "DatasetReference",
 											"parameters": {
-												"table_name": {
-													"value": "@item().publish_table_name",
-													"type": "Expression"
-												}
+												"table_name": "@item().publish_table_name"
 											}
 										}
 									]
@@ -628,7 +637,7 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/json_source_info')]",
 				"[concat(variables('factoryId'), '/datasets/DatabricksDeltaLakeSource')]",
-				"[concat(variables('factoryId'), '/datasets/sqltable_sink')]",
+				"[concat(variables('factoryId'), '/datasets/asasqldw_sink')]",
 				"[concat(variables('factoryId'), '/linkedServices/gcdevdevadls_sink_link')]"
 			]
 		},
@@ -840,6 +849,30 @@
 							"waitOnCompletion": true,
 							"parameters": {}
 						}
+					},
+					{
+						"name": "08 - excel_to_email",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "04 - publish_to_sql",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "08 - excel_to_email",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
 					}
 				],
 				"policy": {
@@ -863,7 +896,8 @@
 				"[concat(variables('factoryId'), '/pipelines/02 - copy_sql_db')]",
 				"[concat(variables('factoryId'), '/pipelines/03 - copy_airlabs_restapi')]",
 				"[concat(variables('factoryId'), '/pipelines/05 - refresh_databricks_notebooks')]",
-				"[concat(variables('factoryId'), '/pipelines/04 - publish_to_sql')]"
+				"[concat(variables('factoryId'), '/pipelines/04 - publish_to_sql')]",
+				"[concat(variables('factoryId'), '/pipelines/08 - excel_to_email')]"
 			]
 		},
 		{
@@ -908,6 +942,80 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/databricks_link')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/08 - excel_to_email')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Web1",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Lookup1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {},
+							"url": "https://prod-17.uksouth.logic.azure.com:443/workflows/66558a1ad16045c9b8d7ce53e2726317/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=LDkBoT-Q2gevhNaNGgboBslR0mjNDIntmKQSYrdyxvU",
+							"body": {
+								"value": "@activity('Lookup1').output.value",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Lookup1",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ExcelSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							},
+							"dataset": {
+								"referenceName": "excel_source",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/excel_source')]"
 			]
 		},
 		{
@@ -965,6 +1073,35 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/airlabs_rest_source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/asasqldw_sink')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "asasqldw_sink",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"table_name": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlDWTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": {
+						"value": "@dataset().table_name",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/asasqldw_sink')]"
 			]
 		},
 		{
@@ -1144,6 +1281,41 @@
 			]
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/excel_source')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "blob_storage_source",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Excel",
+				"typeProperties": {
+					"sheetName": "Email_Sheet",
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "Email_Send.xlsx",
+						"container": "manualfiles"
+					},
+					"firstRowAsHeader": true
+				},
+				"schema": [
+					{
+						"name": "type",
+						"type": "String"
+					},
+					{
+						"name": "Email_ID",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/blob_storage_source')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/gcdev_sqldb_link')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -1300,6 +1472,56 @@
 			"dependsOn": []
 		},
 		{
+			"name": "[concat(parameters('factoryName'), '/asasqldw_sink')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureSqlDW",
+				"typeProperties": {
+					"server": "[parameters('asasqldw_sink_properties_typeProperties_server')]",
+					"database": "[parameters('asasqldw_sink_properties_typeProperties_database')]",
+					"encrypt": "mandatory",
+					"trustServerCertificate": false,
+					"authenticationType": "SQL",
+					"userName": "[parameters('asasqldw_sink_properties_typeProperties_userName')]",
+					"password": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "AzureKeyVault1",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "sqldb-password"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureKeyVault1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/blob_storage_source')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": {
+						"type": "AzureKeyVaultSecret",
+						"store": {
+							"referenceName": "AzureKeyVault1",
+							"type": "LinkedServiceReference"
+						},
+						"secretName": "[parameters('blob_storage_source_properties_typeProperties_connectionString_secretName')]"
+					}
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/AzureKeyVault1')]"
+			]
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/databricks_deltalake_link')]",
 			"type": "Microsoft.DataFactory/factories/linkedServices",
 			"apiVersion": "2018-06-01",
@@ -1453,162 +1675,6 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/AzureKeyVault1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/blob_storage_source')]",
-			"type": "Microsoft.DataFactory/factories/linkedServices",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"annotations": [],
-				"type": "AzureBlobStorage",
-				"typeProperties": {
-					"connectionString": {
-						"type": "AzureKeyVaultSecret",
-						"store": {
-							"referenceName": "AzureKeyVault1",
-							"type": "LinkedServiceReference"
-						},
-						"secretName": "[parameters('blob_storage_source_properties_typeProperties_connectionString_secretName')]"
-					}
-				}
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/AzureKeyVault1')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/excel_source')]",
-			"type": "Microsoft.DataFactory/factories/datasets",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"linkedServiceName": {
-					"referenceName": "blob_storage_source",
-					"type": "LinkedServiceReference"
-				},
-				"annotations": [],
-				"type": "Excel",
-				"typeProperties": {
-					"sheetName": "Email_Sheet",
-					"location": {
-						"type": "AzureBlobStorageLocation",
-						"fileName": "Email_Send.xlsx",
-						"container": "manualfiles"
-					},
-					"firstRowAsHeader": true
-				},
-				"schema": [
-					{
-						"name": "type",
-						"type": "String"
-					},
-					{
-						"name": "Email_ID",
-						"type": "String"
-					}
-				]
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/linkedServices/blob_storage_source')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/08 - excel_to_email')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Copy data1",
-						"type": "Copy",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "ExcelSource",
-								"storeSettings": {
-									"type": "AzureBlobStorageReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
-								}
-							},
-							"sink": {
-								"type": "AzureSqlSink",
-								"preCopyScript": "DROP TABLE IF EXISTS dbo.Email_Send;",
-								"writeBehavior": "insert",
-								"sqlWriterUseTableLock": false,
-								"tableOption": "autoCreate",
-								"disableMetricsCollection": false
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "excel_source",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "sqltable_sink",
-								"type": "DatasetReference",
-								"parameters": {
-									"table_name": "Email_Send"
-								}
-							}
-						]
-					},
-					{
-						"name": "Web1",
-						"type": "WebActivity",
-						"dependsOn": [
-							{
-								"activity": "Copy data1",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"method": "POST",
-							"headers": {},
-							"url": "https://prod-17.uksouth.logic.azure.com:443/workflows/66558a1ad16045c9b8d7ce53e2726317/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=LDkBoT-Q2gevhNaNGgboBslR0mjNDIntmKQSYrdyxvU",
-							"body": {}
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/excel_source')]",
-				"[concat(variables('factoryId'), '/datasets/sqltable_sink')]"
 			]
 		}
 	]

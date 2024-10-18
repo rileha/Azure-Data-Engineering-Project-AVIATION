@@ -15,6 +15,22 @@
 			"type": "string",
 			"defaultValue": "https://airlabs.co/api/v9/airlines"
 		},
+		"asasqldw_sink_properties_typeProperties_server": {
+			"type": "string",
+			"defaultValue": "gcdev-sqlserverdev.database.windows.net"
+		},
+		"asasqldw_sink_properties_typeProperties_database": {
+			"type": "string",
+			"defaultValue": "gcdevsqldw"
+		},
+		"asasqldw_sink_properties_typeProperties_userName": {
+			"type": "string",
+			"defaultValue": "sqladmin"
+		},
+		"blob_storage_source_properties_typeProperties_connectionString_secretName": {
+			"type": "string",
+			"defaultValue": "blob-source-connection"
+		},
 		"databricks_link_properties_typeProperties_existingClusterId": {
 			"type": "string",
 			"defaultValue": "1017-093846-blt91uz2"
@@ -67,10 +83,6 @@
 			"type": "string",
 			"defaultValue": "sqladmin"
 		},
-		"blob_storage_source_properties_typeProperties_connectionString_secretName": {
-			"type": "string",
-			"defaultValue": "blob-source-connection"
-		},
 		"containerUri": {
 			"type": "string",
 			"metadata": "URI to storage account containing linked ARM templates"
@@ -103,6 +115,18 @@
 					},
 					"airlabs_rest_source_properties_typeProperties_url": {
 						"value": "[parameters('airlabs_rest_source_properties_typeProperties_url')]"
+					},
+					"asasqldw_sink_properties_typeProperties_server": {
+						"value": "[parameters('asasqldw_sink_properties_typeProperties_server')]"
+					},
+					"asasqldw_sink_properties_typeProperties_database": {
+						"value": "[parameters('asasqldw_sink_properties_typeProperties_database')]"
+					},
+					"asasqldw_sink_properties_typeProperties_userName": {
+						"value": "[parameters('asasqldw_sink_properties_typeProperties_userName')]"
+					},
+					"blob_storage_source_properties_typeProperties_connectionString_secretName": {
+						"value": "[parameters('blob_storage_source_properties_typeProperties_connectionString_secretName')]"
 					},
 					"databricks_link_properties_typeProperties_existingClusterId": {
 						"value": "[parameters('databricks_link_properties_typeProperties_existingClusterId')]"
@@ -142,9 +166,6 @@
 					},
 					"sqldatabase_sink_properties_typeProperties_userName": {
 						"value": "[parameters('sqldatabase_sink_properties_typeProperties_userName')]"
-					},
-					"blob_storage_source_properties_typeProperties_connectionString_secretName": {
-						"value": "[parameters('blob_storage_source_properties_typeProperties_connectionString_secretName')]"
 					}
 				}
 			},

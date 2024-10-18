@@ -11,6 +11,18 @@
 		"airlabs_rest_source_properties_typeProperties_url": {
 			"value": "https://airlabs.co/api/v9/airlines"
 		},
+		"asasqldw_sink_properties_typeProperties_server": {
+			"value": "gcdev-sqlserverdev.database.windows.net"
+		},
+		"asasqldw_sink_properties_typeProperties_database": {
+			"value": "gcdevsqldw"
+		},
+		"asasqldw_sink_properties_typeProperties_userName": {
+			"value": "sqladmin"
+		},
+		"blob_storage_source_properties_typeProperties_connectionString_secretName": {
+			"value": "blob-source-connection"
+		},
 		"databricks_link_properties_typeProperties_existingClusterId": {
 			"value": "1017-093846-blt91uz2"
 		},
@@ -49,9 +61,6 @@
 		},
 		"sqldatabase_sink_properties_typeProperties_userName": {
 			"value": "sqladmin"
-		},
-		"blob_storage_source_properties_typeProperties_connectionString_secretName": {
-			"value": "blob-source-connection"
 		}
 	}
 }
