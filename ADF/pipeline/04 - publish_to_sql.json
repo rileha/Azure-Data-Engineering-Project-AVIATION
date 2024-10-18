@@ -115,8 +115,24 @@
 				}
 			},
 			{
-				"name": "AutomationRunbookWebHook",
-				"type": "WebHook",
+				"name": "Wait1",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "09 - dw_status_job",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 3
+				}
+			},
+			{
+				"name": "09 - dw_status_job",
+				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
 						"activity": "lookup_publish",
@@ -126,31 +142,44 @@
 					}
 				],
 				"policy": {
-					"secureOutput": false,
 					"secureInput": false
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"url": "https://94ebf15a-e8bf-4bd8-9bfb-bf32cbccd5b9.webhook.uks.azure-automation.net/webhooks?token=RbUO2vdGPUbUiLl6ZuRI9NuWxPp1rXiZgWyNBJHZ02E%3d",
-					"method": "POST",
-					"body": "()",
-					"timeout": "00:05:00"
+					"pipeline": {
+						"referenceName": "09 - dw_status_job",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"status": "Start"
+					}
 				}
 			},
 			{
-				"name": "Wait1",
-				"type": "Wait",
+				"name": "09 - dw_status_job1",
+				"type": "ExecutePipeline",
 				"dependsOn": [
 					{
-						"activity": "AutomationRunbookWebHook",
+						"activity": "ForEach1",
 						"dependencyConditions": [
 							"Succeeded"
 						]
 					}
 				],
+				"policy": {
+					"secureInput": false
+				},
 				"userProperties": [],
 				"typeProperties": {
-					"waitTimeInSeconds": 3
+					"pipeline": {
+						"referenceName": "09 - dw_status_job",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"status": "Stop"
+					}
 				}
 			}
 		],
