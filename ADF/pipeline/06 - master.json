@@ -185,7 +185,8 @@
 					"raw",
 					"cleansed",
 					"data_quality_checks",
-					"mart"
+					"mart",
+					"data_quality_mart"
 				]
 			}
 		},
