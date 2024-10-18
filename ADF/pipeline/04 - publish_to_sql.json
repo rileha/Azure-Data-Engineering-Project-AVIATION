@@ -42,7 +42,7 @@
 				"type": "ForEach",
 				"dependsOn": [
 					{
-						"activity": "AutomationRunbookWebHook",
+						"activity": "Wait1",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -134,6 +134,22 @@
 					"url": "https://94ebf15a-e8bf-4bd8-9bfb-bf32cbccd5b9.webhook.uks.azure-automation.net/webhooks?token=RbUO2vdGPUbUiLl6ZuRI9NuWxPp1rXiZgWyNBJHZ02E%3d",
 					"method": "POST",
 					"timeout": "00:10:00"
+				}
+			},
+			{
+				"name": "Wait1",
+				"type": "Wait",
+				"dependsOn": [
+					{
+						"activity": "AutomationRunbookWebHook",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 3
 				}
 			}
 		],
