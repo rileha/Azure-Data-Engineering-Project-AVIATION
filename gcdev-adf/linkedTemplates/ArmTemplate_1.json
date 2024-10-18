@@ -13,6 +13,39 @@
 	},
 	"resources": [
 		{
+			"name": "[concat(parameters('factoryName'), '/excel_source')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "blob_storage_source",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Excel",
+				"typeProperties": {
+					"sheetName": "Email_Sheet",
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "Email_Send.xlsx",
+						"container": "manualfiles"
+					},
+					"firstRowAsHeader": true
+				},
+				"schema": [
+					{
+						"name": "type",
+						"type": "String"
+					},
+					{
+						"name": "Email_ID",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
 			"name": "[concat(parameters('factoryName'), '/gcdev_sqldb_link')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
@@ -596,7 +629,7 @@
 						"type": "ForEach",
 						"dependsOn": [
 							{
-								"activity": "AutomationRunbookWebHook",
+								"activity": "Wait1",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -670,8 +703,24 @@
 						}
 					},
 					{
-						"name": "AutomationRunbookWebHook",
-						"type": "WebHook",
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [
+							{
+								"activity": "09 - dw_status_job",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 3
+						}
+					},
+					{
+						"name": "09 - dw_status_job",
+						"type": "ExecutePipeline",
 						"dependsOn": [
 							{
 								"activity": "lookup_publish",
@@ -681,16 +730,44 @@
 							}
 						],
 						"policy": {
-							"secureOutput": false,
 							"secureInput": false
 						},
 						"userProperties": [],
 						"typeProperties": {
-							"url": "https://94ebf15a-e8bf-4bd8-9bfb-bf32cbccd5b9.webhook.uks.azure-automation.net/webhooks?token=RbUO2vdGPUbUiLl6ZuRI9NuWxPp1rXiZgWyNBJHZ02E%3d",
-							"method": "POST",
-							"headers": {},
-							"body": {},
-							"timeout": "00:10:00"
+							"pipeline": {
+								"referenceName": "09 - dw_status_job",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"status": "Start"
+							}
+						}
+					},
+					{
+						"name": "09 - dw_status_job1",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ForEach1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "09 - dw_status_job",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"status": "Stop"
+							}
 						}
 					}
 				],
@@ -773,7 +850,9 @@
 				},
 				"annotations": []
 			},
-			"dependsOn": []
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/excel_source')]"
+			]
 		},
 		{
 			"name": "[concat(parameters('factoryName'), '/06 - master')]",

@@ -555,7 +555,7 @@
 						"type": "ForEach",
 						"dependsOn": [
 							{
-								"activity": "AutomationRunbookWebHook",
+								"activity": "Wait1",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -629,8 +629,24 @@
 						}
 					},
 					{
-						"name": "AutomationRunbookWebHook",
-						"type": "WebHook",
+						"name": "Wait1",
+						"type": "Wait",
+						"dependsOn": [
+							{
+								"activity": "09 - dw_status_job",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 3
+						}
+					},
+					{
+						"name": "09 - dw_status_job",
+						"type": "ExecutePipeline",
 						"dependsOn": [
 							{
 								"activity": "lookup_publish",
@@ -640,16 +656,44 @@
 							}
 						],
 						"policy": {
-							"secureOutput": false,
 							"secureInput": false
 						},
 						"userProperties": [],
 						"typeProperties": {
-							"url": "https://94ebf15a-e8bf-4bd8-9bfb-bf32cbccd5b9.webhook.uks.azure-automation.net/webhooks?token=RbUO2vdGPUbUiLl6ZuRI9NuWxPp1rXiZgWyNBJHZ02E%3d",
-							"method": "POST",
-							"headers": {},
-							"body": {},
-							"timeout": "00:10:00"
+							"pipeline": {
+								"referenceName": "09 - dw_status_job",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"status": "Start"
+							}
+						}
+					},
+					{
+						"name": "09 - dw_status_job1",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ForEach1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "09 - dw_status_job",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"status": "Stop"
+							}
 						}
 					}
 				],
@@ -660,6 +704,7 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/json_source_info')]",
+				"[concat(variables('factoryId'), '/pipelines/09 - dw_status_job')]",
 				"[concat(variables('factoryId'), '/datasets/DatabricksDeltaLakeSource')]",
 				"[concat(variables('factoryId'), '/datasets/asasqldw_sink')]",
 				"[concat(variables('factoryId'), '/linkedServices/gcdevdevadls_sink_link')]"
@@ -1700,6 +1745,45 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/AzureKeyVault1')]"
 			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/09 - dw_status_job')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "AutomationRunbookWebHook",
+						"type": "WebHook",
+						"dependsOn": [],
+						"policy": {
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"url": "https://94ebf15a-e8bf-4bd8-9bfb-bf32cbccd5b9.webhook.uks.azure-automation.net/webhooks?token=AY0YZr5twS2MxG5wogs%2bnPQbNjjNh7gq47m78lYNyrE%3d",
+							"method": "POST",
+							"headers": {},
+							"body": {
+								"value": "@json(concat('{\"param\": \"', pipeline().parameters.status, '\"}'))",
+								"type": "Expression"
+							},
+							"timeout": "00:05:00"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"status": {
+						"type": "string"
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": []
 		}
 	]
 }
