@@ -1,0 +1,23 @@
+{
+	"name": "asasqldw_sink",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDW",
+		"typeProperties": {
+			"server": "gcdev-sqlserverdev.database.windows.net",
+			"database": "gcdevsqldw",
+			"encrypt": "mandatory",
+			"trustServerCertificate": false,
+			"authenticationType": "SQL",
+			"userName": "sqladmin",
+			"password": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVault1",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "sqldb-password"
+			}
+		}
+	}
+}
