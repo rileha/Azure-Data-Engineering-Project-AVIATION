@@ -1,9 +1,4 @@
 # Databricks notebook source
-# MAGIC %md
-# MAGIC Not possible to use Autloader as Spark struggles with pdf so need to create a pdf to csv job that is triggered by new pdf files being uploaded into the container. We can then set up an Autoloader on the 'extracted_data' directory to immediately load the processed pdf to csv files.
-
-# COMMAND ----------
-
 pip install PyPDF2
 
 # COMMAND ----------

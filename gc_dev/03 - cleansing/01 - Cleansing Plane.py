@@ -17,6 +17,10 @@ df.display()
 
 # COMMAND ----------
 
+# from pyspark.sql.functions import current_date
+
+df_cleaned = df.drop('_rescued_data', 'Content')
+
 df_base = df_cleaned.selectExpr(
     'tailnum as tailid', 
     'type', 
@@ -27,8 +31,10 @@ df_base = df_cleaned.selectExpr(
     'aircraft_type', 
     'engine_type', 
     "cast(year as int) as year", 
-    "to_date(Date_Part, 'yyyy-MM-dd') as Date_Part"  # Convert Date_Part to date
+    "to_date(Date_Part, 'yyyy-MM-dd') as Date_Part"
 )
+# .withColumn('Date_Part', current_date())
+
 df_base.writeStream \
     .trigger(once=True) \
     .format('delta') \

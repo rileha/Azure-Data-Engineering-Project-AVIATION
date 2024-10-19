@@ -2,7 +2,7 @@
 def extract_schema(path):
     
     # Read the Delta table to get the schema
-    df = spark.read.format("delta").load(f"abfss://cleansed@gcdevadlsdev.dfs.core.windows.net/{path}/").limit(1)
+    df = spark.read.format("delta").load(f"abfss://cleansed@gcdevadlsdev.dfs.core.windows.net/{path}/")
 
     # Initialize an empty schema string
     schema = ''
@@ -83,4 +83,37 @@ def count_check(database, operation_type, table_name, number_diff):
             raise Exception(f"In {table_name} table, row count difference of {count_diff} exceeds the permitted threshold of {number_diff}.")
         else:
             print(f"In {table_name} table, row count difference is {count_diff}, within the permitted threshold of {number_diff}.")
+
+
+# COMMAND ----------
+
+def insert_test_cases(database, insert_id, insert_test_cases, insert_test_query, insert_expected_result):
+    try:
+        spark.sql(f"""
+                CREATE TABLE IF NOT EXISTS {database}.insert_test_cases
+                (id INT, 
+                test_cases STRING, 
+                test_query STRING,
+                expected_result INT
+                )""")
+        
+        spark.sql(f"""
+                INSERT INTO {database}.insert_test_cases 
+                (id, test_cases, test_query, expected_result) values({insert_id}, 
+                '{insert_test_cases}', '{insert_test_query}', {insert_expected_result})
+                """)
+    except Exception as err:
+        print("Error Occured", str(err))
+
+# COMMAND ----------
+
+def execute_test_case(database):
+    df = spark.sql(f"""SELECT * FROM {database}.insert_test_cases;""").collect()
+    for i in df:
+        original_result = spark.sql(f"""{i.test_query}""").collect()
+        if len(original_result) == i.expected_result:
+            print("Test case has passed.")
+        else:
+            raise Exception(f"{test_cases} has failed.")
+
 
