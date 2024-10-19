@@ -380,7 +380,7 @@
 						"type": "ForEach",
 						"dependsOn": [
 							{
-								"activity": "Lookup_Metadata_SQL",
+								"activity": "Filter",
 								"dependencyConditions": [
 									"Succeeded"
 								]
@@ -389,7 +389,7 @@
 						"userProperties": [],
 						"typeProperties": {
 							"items": {
-								"value": "@activity('Lookup_Metadata_SQL').output.value",
+								"value": "@activity('Filter').output.value",
 								"type": "Expression"
 							},
 							"activities": [
@@ -452,10 +452,39 @@
 								}
 							]
 						}
+					},
+					{
+						"name": "Filter",
+						"type": "Filter",
+						"dependsOn": [
+							{
+								"activity": "Lookup_Metadata_SQL",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup_Metadata_SQL').output.value",
+								"type": "Expression"
+							},
+							"condition": {
+								"value": "@if(equals(length(pipeline().parameters.table_name), 0), not(equals(pipeline().parameters.table_name, item().tablename_source)), contains(pipeline().parameters.table_name, item().tablename_source))\n\n",
+								"type": "Expression"
+							}
+						}
 					}
 				],
 				"policy": {
 					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"table_name": {
+						"type": "array",
+						"defaultValue": []
+					}
 				},
 				"annotations": [],
 				"lastPublishTime": "2024-09-25T15:52:38Z"
