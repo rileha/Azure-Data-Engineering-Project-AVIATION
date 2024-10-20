@@ -208,7 +208,7 @@
 						"type": "Expression"
 					},
 					"condition": {
-						"value": "@equals(item().source_table_name, pipeline().parameters. table_to_rerun)",
+						"value": "@equals(item().source_table_name, pipeline().parameters.table_to_rerun)",
 						"type": "Expression"
 					}
 				}
