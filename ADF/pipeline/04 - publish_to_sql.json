@@ -86,7 +86,8 @@
 										"referenceName": "gcdevdevadls_sink_link",
 										"type": "LinkedServiceReference"
 									},
-									"path": "manualfile"
+									"path": "manualfile",
+									"enableCompression": true
 								},
 								"parallelCopies": 8,
 								"dataIntegrationUnits": 8
