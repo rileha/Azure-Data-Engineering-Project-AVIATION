@@ -42,7 +42,7 @@
 				"type": "ForEach",
 				"dependsOn": [
 					{
-						"activity": "Wait1",
+						"activity": "select_table",
 						"dependencyConditions": [
 							"Succeeded"
 						]
@@ -87,7 +87,9 @@
 										"type": "LinkedServiceReference"
 									},
 									"path": "manualfile"
-								}
+								},
+								"parallelCopies": 8,
+								"dataIntegrationUnits": 8
 							},
 							"inputs": [
 								{
@@ -95,7 +97,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"table_name": {
-											"value": "@item().source_table_name",
+											"value": "@item().tableName",
 											"type": "Expression"
 										}
 									}
@@ -187,8 +189,36 @@
 						"status": "Stop"
 					}
 				}
+			},
+			{
+				"name": "select_table",
+				"type": "Filter",
+				"dependsOn": [
+					{
+						"activity": "Wait1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('lookup_publish').output.value",
+						"type": "Expression"
+					},
+					"condition": {
+						"value": "@equals(item().tableName, pipeline().parameters.tableNameToRerun)",
+						"type": "Expression"
+					}
+				}
 			}
 		],
+		"parameters": {
+			"tableNameToRerun": {
+				"type": "string"
+			}
+		},
 		"annotations": []
 	}
 }
