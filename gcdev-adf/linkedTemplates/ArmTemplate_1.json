@@ -734,6 +734,8 @@
 					{
 						"name": "Wait1",
 						"type": "Wait",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
 								"activity": "09 - dw_status_job",
@@ -750,6 +752,8 @@
 					{
 						"name": "09 - dw_status_job",
 						"type": "ExecutePipeline",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
 								"activity": "lookup_publish",
@@ -776,6 +780,8 @@
 					{
 						"name": "09 - dw_status_job1",
 						"type": "ExecutePipeline",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
 						"dependsOn": [
 							{
 								"activity": "ForEach1",
