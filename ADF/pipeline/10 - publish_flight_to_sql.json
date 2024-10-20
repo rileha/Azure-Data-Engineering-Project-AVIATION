@@ -19,6 +19,7 @@
 						"value": "@activity('select_table').output.value",
 						"type": "Expression"
 					},
+					"batchCount": 10,
 					"activities": [
 						{
 							"name": "Copy data1_copy1",
