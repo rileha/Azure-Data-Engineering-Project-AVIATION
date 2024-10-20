@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "[1, 2, 3, 4]",
+						"value": "@activity('select_table').output.value",
 						"type": "Expression"
 					},
 					"activities": [
