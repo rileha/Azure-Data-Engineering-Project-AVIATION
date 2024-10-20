@@ -36,7 +36,7 @@
 								"source": {
 									"type": "AzureDatabricksDeltaLakeSource",
 									"query": {
-										"value": "@concat(\n    'SELECT * FROM mart_gcdev.fact_flight WHERE ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) BETWEEN ',\n    if(equals(item(), 1), pipeline().parameters.start_row1, \n    if(equals(item(), 2), pipeline().parameters.start_row2, \n    if(equals(item(), 3), pipeline().parameters.start_row3, \n    pipeline().parameters.start_row4))),\n    ' AND ',\n    if(equals(item(), 1), pipeline().parameters.end_row1, \n    if(equals(item(), 2), pipeline().parameters.end_row2, \n    if(equals(item(), 3), pipeline().parameters.end_row3, \n    pipeline().parameters.end_row4)))\n)",
+										"value": "@concat(\n    'WITH numbered_rows AS (',\n    'SELECT *, ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) AS row_num ',\n    'FROM mart_gcdev.fact_flight ',\n    ') ',\n    'SELECT * FROM numbered_rows ',\n    'WHERE row_num BETWEEN ',\n    if(equals(item(), 1), pipeline().parameters.start_row1, \n    if(equals(item(), 2), pipeline().parameters.start_row2, \n    if(equals(item(), 3), pipeline().parameters.start_row3, \n    pipeline().parameters.start_row4))),\n    ' AND ',\n    if(equals(item(), 1), pipeline().parameters.end_row1, \n    if(equals(item(), 2), pipeline().parameters.end_row2, \n    if(equals(item(), 3), pipeline().parameters.end_row3, \n    pipeline().parameters.end_row4)))\n)",
 										"type": "Expression"
 									},
 									"exportSettings": {
