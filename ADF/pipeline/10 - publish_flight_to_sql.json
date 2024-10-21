@@ -3,93 +3,10 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "ForEach1",
-				"type": "ForEach",
-				"dependsOn": [
-					{
-						"activity": "select_table",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
-				"userProperties": [],
-				"typeProperties": {
-					"items": {
-						"value": "@activity('select_table').output.value",
-						"type": "Expression"
-					},
-					"batchCount": 10,
-					"activities": [
-						{
-							"name": "Copy data1_copy1",
-							"type": "Copy",
-							"dependsOn": [],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"source": {
-									"type": "AzureDatabricksDeltaLakeSource",
-									"query": {
-										"value": "@concat(\n    'SELECT \"date\", date_year, deptime, tailid, unique_carrier, flight_number, ',\n    'arrival_delay, departure_delay, origin, cancelled, cancellation_code ',\n    'FROM mart_gcdev.fact_flight ',\n    'WHERE date_year = 2005'\n)\n",
-										"type": "Expression"
-									},
-									"exportSettings": {
-										"type": "AzureDatabricksDeltaLakeExportCommand"
-									}
-								},
-								"sink": {
-									"type": "SqlDWSink",
-									"allowCopyCommand": true,
-									"tableOption": "autoCreate",
-									"disableMetricsCollection": false
-								},
-								"enableStaging": true,
-								"stagingSettings": {
-									"linkedServiceName": {
-										"referenceName": "gcdevdevadls_sink_link",
-										"type": "LinkedServiceReference"
-									},
-									"path": "manualfile",
-									"enableCompression": true
-								},
-								"parallelCopies": 8,
-								"dataIntegrationUnits": 8
-							},
-							"inputs": [
-								{
-									"referenceName": "DatabricksDeltaLakeSource",
-									"type": "DatasetReference",
-									"parameters": {
-										"table_name": {
-											"value": "@item().source_table_name",
-											"type": "Expression"
-										}
-									}
-								}
-							],
-							"outputs": [
-								{
-									"referenceName": "asasqldw_sink",
-									"type": "DatasetReference",
-									"parameters": {
-										"table_name": "@item().publish_table_name"
-									}
-								}
-							]
-						}
-					]
-				}
-			},
-			{
 				"name": "lookup_publish",
 				"type": "Lookup",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
@@ -125,6 +42,8 @@
 			{
 				"name": "select_table",
 				"type": "Filter",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [
 					{
 						"activity": "lookup_publish",
@@ -144,12 +63,198 @@
 						"type": "Expression"
 					}
 				}
+			},
+			{
+				"name": "Copy_fact_flight",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "select_table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureDatabricksDeltaLakeSource",
+						"query": {
+							"value": "@concat(\n    'SELECT \"date\", date_year, deptime, tailid, unique_carrier, flight_number, ',\n    'arrival_delay, departure_delay, origin, cancelled, cancellation_code ',\n    'FROM mart_gcdev.fact_flight_new '\n)\n",
+							"type": "Expression"
+						},
+						"exportSettings": {
+							"type": "AzureDatabricksDeltaLakeExportCommand"
+						}
+					},
+					"sink": {
+						"type": "SqlDWSink",
+						"writeBatchSize": 50000,
+						"writeBehavior": "Insert",
+						"tableOption": "autoCreate",
+						"disableMetricsCollection": false
+					},
+					"enableStaging": true,
+					"stagingSettings": {
+						"linkedServiceName": {
+							"referenceName": "gcdevdevadls_sink_link",
+							"type": "LinkedServiceReference"
+						},
+						"path": "manualfile",
+						"enableCompression": true
+					},
+					"parallelCopies": 32,
+					"dataIntegrationUnits": 32,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "date",
+									"type": "String"
+								},
+								"sink": {
+									"name": "date",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "date_year",
+									"type": "Int"
+								},
+								"sink": {
+									"name": "date_year",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "deptime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "deptime",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "tailid",
+									"type": "Int"
+								},
+								"sink": {
+									"name": "tailid",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "unique_carrier",
+									"type": "String"
+								},
+								"sink": {
+									"name": "unique_carrier",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "flight_number",
+									"type": "Int"
+								},
+								"sink": {
+									"name": "flight_number",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "arrival_delay",
+									"type": "Int"
+								},
+								"sink": {
+									"name": "arrival_delay",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "departure_delay",
+									"type": "Int"
+								},
+								"sink": {
+									"name": "departure_delay",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "origin",
+									"type": "String"
+								},
+								"sink": {
+									"name": "origin",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "cancelled",
+									"type": "Int"
+								},
+								"sink": {
+									"name": "cancelled",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "cancellation_code",
+									"type": "String"
+								},
+								"sink": {
+									"name": "cancellation_code",
+									"type": "String"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DatabricksDeltaLakeSource",
+						"type": "DatasetReference",
+						"parameters": {
+							"table_name": "fact_flight_new"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "asasqldw_sink",
+						"type": "DatasetReference",
+						"parameters": {
+							"table_name": {
+								"value": "fact_flight",
+								"type": "Expression"
+							}
+						}
+					}
+				]
 			}
 		],
 		"parameters": {
 			"table_to_rerun": {
 				"type": "string",
-				"defaultValue": "fact_flight"
+				"defaultValue": "fact_flight_new"
 			},
 			"start_row1": {
 				"type": "int",
