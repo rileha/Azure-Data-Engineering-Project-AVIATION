@@ -2,16 +2,16 @@
 
 📑 **Table of Contents**
 
-1. Project Overview
-2. Expected Outputs
-3. Data Sources and Transformation
-4. Data Set Selection
-5. Technology Choices
-6. Data Model
-7. Implementation Steps
-8. CI/CD and Automation
-9. Alternatives Considered
-10. Future Enhancements
+🔵 Project Overview
+🔵 Expected Outputs
+🔵 Data Sources and Transformation
+🔵 Data Set Selection
+🔵 Technology Choices
+🔵 Data Model
+🔵Implementation Steps
+🔵 CI/CD and Automation
+🔵 Alternatives Considered
+🔵 Future Enhancements
 
 
 📝 **Project Overview**
