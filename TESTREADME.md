@@ -50,6 +50,8 @@ These data sources are cleansed and standardized using Databricks with both auto
 
 ---
 
+![Data Ingestion Process](https://github.com/rileha/Azure-Data-Engineering-Project-AVIATION/blob/main/Screenshots/Screenshot%202025-03-20%20at%2010.42.15.png?raw=true)
+
 ## 📂 **Data Set Selection**
 
 Each dataset was chosen to support detailed analysis:
@@ -81,6 +83,8 @@ This stack was selected for its integration capabilities, scalability, and autom
 
 ---
 
+![Key Vault](https://github.com/rileha/Azure-Data-Engineering-Project-AVIATION/blob/main/Screenshots/Screenshot%202025-03-20%20at%2010.47.26.png?raw=true)
+
 ## 🗂️ **Data Model**
 
 The data model follows a star schema design with:
@@ -94,6 +98,8 @@ This star schema, enhanced by the Date Dimension, improves performance for analy
 
 ---
 
+![Key Vault](https://github.com/rileha/Azure-Data-Engineering-Project-AVIATION/blob/main/Screenshots/Screenshot%202025-03-20%20at%2010.48.49.png?raw=true)
+
 ## 🚀 **Implementation Steps**
 
 1. **Data Ingestion** 🔄: Moved raw data from client sources (blob storage, data lake, SQL database) into our ADLS raw storage using ADF.
@@ -105,6 +111,8 @@ This star schema, enhanced by the Date Dimension, improves performance for analy
 7. **Resource Automation** 💼: Used Azure Automation Account to manage SQL Data Warehouse operations, reducing costs by automating start/stop schedules.
 
 ---
+
+![Key Vault](https://github.com/rileha/Azure-Data-Engineering-Project-AVIATION/blob/main/Screenshots/Screenshot%202025-03-20%20at%2010.49.24.png?raw=true)
 
 ## 🔄 **CI/CD and Automation**
 
@@ -129,6 +137,8 @@ The project’s CI/CD pipeline automates deployment and updates across various A
 
 ---
 
+![Data Transformation Process](https://github.com/rileha/Azure-Data-Engineering-Project-AVIATION/blob/main/Screenshots/Screenshot%202025-03-20%20at%2010.44.07.png?raw=true)
+
 ## 🤔 **Alternatives Considered**
 
 - **Azure Synapse Analytics for ETL**: Synapse provides an integrated ETL environment, but Databricks was selected for its flexibility with both batch and autoload processes.
@@ -145,10 +155,6 @@ To scale and extend the project, consider these options:
 2. **Integrate Streaming Data 💧**: To support real-time insights, incorporate streaming sources (e.g., live flight data) using Azure Stream Analytics or Databricks.
 3. **Scheduled Reporting ⏰**: Automate daily or weekly Power BI report distributions using the Azure Logic App, scheduling delivery at key times (e.g., 9 AM daily).
 4. **Expand User Access 🧑‍🤝‍🧑**: Enable concurrent access for multiple teams by configuring user roles and permissions in SQL Data Warehouse, supporting data engineers, scientists, and analysts.
+5. **Complete CI/CD Automation**: Spend more time completing the Azure DevOps and GitHub Actions element of this project.
 
 ---
-
-## 📸 **Screenshots**
-
-### 🔧 Data Ingestion Process  
-![Data Ingestion Process](https://github.com/rileha/Databricks-Certified-Data-Engineer-Professional/blob/main/Screenshots/Screenshot%202025-03-20%20at%2010
