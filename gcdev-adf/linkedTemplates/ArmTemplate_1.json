@@ -1,0 +1,1105 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "gcdev-adf"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/excel_source')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "blob_storage_source",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Excel",
+				"typeProperties": {
+					"sheetName": "Email_Sheet",
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "Email_Send.xlsx",
+						"container": "manualfiles"
+					},
+					"firstRowAsHeader": true
+				},
+				"schema": [
+					{
+						"name": "type",
+						"type": "String"
+					},
+					{
+						"name": "Email_ID",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/gcdev_sqldb_link')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "gcdev_sqldb_source",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"tablename": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": {
+						"value": "@dataset().tablename",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/json_source_info')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "gcdevdevadls_sink_link",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"filename": {
+						"type": "string"
+					},
+					"container": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "Json",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().filename",
+							"type": "Expression"
+						},
+						"fileSystem": {
+							"value": "@dataset().container",
+							"type": "Expression"
+						}
+					}
+				},
+				"schema": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/parquet_sink')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "gcdevdevadls_sink_link",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Parquet",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@item().filename_sink",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@concat(split(item().filename_sink, '.')[0], '/Date_Part=', formatDateTime(utcnow(), 'yyyy-MM-dd'))",
+							"type": "Expression"
+						},
+						"fileSystem": "raw"
+					},
+					"compressionCodec": "snappy"
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/sqltable_sink')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "sqldatabase_sink",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"table_name": {
+						"type": "string"
+					}
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": {
+						"value": "@dataset().table_name",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/01 - copy_csv_source')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup_Metadata",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "JsonSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "JsonReadSettings"
+								}
+							},
+							"dataset": {
+								"referenceName": "json_source_info",
+								"type": "DatasetReference",
+								"parameters": {
+									"filename": "Table_Source_Datalake.json",
+									"container": "manualfile"
+								}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Lookup_Metadata",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup_Metadata').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "If Condition",
+									"type": "IfCondition",
+									"dependsOn": [],
+									"userProperties": [],
+									"typeProperties": {
+										"expression": {
+											"value": "@equals(split(item().File_name_source, '.')[1], 'csv')",
+											"type": "Expression"
+										},
+										"ifTrueActivities": [
+											{
+												"name": "copy_data_copy1",
+												"type": "Copy",
+												"dependsOn": [],
+												"policy": {
+													"timeout": "0.12:00:00",
+													"retry": 0,
+													"retryIntervalInSeconds": 30,
+													"secureOutput": false,
+													"secureInput": false
+												},
+												"userProperties": [],
+												"typeProperties": {
+													"source": {
+														"type": "DelimitedTextSource",
+														"storeSettings": {
+															"type": "AzureBlobFSReadSettings",
+															"recursive": true,
+															"enablePartitionDiscovery": false
+														},
+														"formatSettings": {
+															"type": "DelimitedTextReadSettings"
+														}
+													},
+													"sink": {
+														"type": "DelimitedTextSink",
+														"storeSettings": {
+															"type": "AzureBlobFSWriteSettings"
+														},
+														"formatSettings": {
+															"type": "DelimitedTextWriteSettings",
+															"quoteAllText": true,
+															"fileExtension": ".txt"
+														}
+													},
+													"enableStaging": false,
+													"translator": {
+														"type": "TabularTranslator",
+														"typeConversion": true,
+														"typeConversionSettings": {
+															"allowDataTruncation": true,
+															"treatBooleanAsNumber": false
+														}
+													}
+												},
+												"inputs": [
+													{
+														"referenceName": "csv_source",
+														"type": "DatasetReference",
+														"parameters": {
+															"container": {
+																"value": "@item().container_source",
+																"type": "Expression"
+															},
+															"filename": {
+																"value": "@item().File_name_source",
+																"type": "Expression"
+															}
+														}
+													}
+												],
+												"outputs": [
+													{
+														"referenceName": "csv_sink",
+														"type": "DatasetReference",
+														"parameters": {
+															"container": {
+																"value": "@item().container_sink",
+																"type": "Expression"
+															},
+															"directory": {
+																"value": "@concat('flight/Date_Part=', formatDateTime(utcnow(), 'yyyy-MM-dd'), '/', split(item().File_name_sink, '.')[0])\n",
+																"type": "Expression"
+															},
+															"filename": {
+																"value": "@item().File_name_sink",
+																"type": "Expression"
+															}
+														}
+													}
+												]
+											}
+										]
+									}
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2024-09-25T15:52:38Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/json_source_info')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/02 - copy_sql_db')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Lookup_Metadata_SQL",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "JsonSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "JsonReadSettings"
+								}
+							},
+							"dataset": {
+								"referenceName": "json_source_info",
+								"type": "DatasetReference",
+								"parameters": {
+									"filename": "Table_Source_SQL.json",
+									"container": "manualfile"
+								}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Filter",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Filter').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Copy data1",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"sink": {
+											"type": "ParquetSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "ParquetWriteSettings"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "gcdev_sqldb_link",
+											"type": "DatasetReference",
+											"parameters": {
+												"tablename": {
+													"value": "@item().tablename_source",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "parquet_sink",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									]
+								}
+							]
+						}
+					},
+					{
+						"name": "Filter",
+						"type": "Filter",
+						"dependsOn": [
+							{
+								"activity": "Lookup_Metadata_SQL",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('Lookup_Metadata_SQL').output.value",
+								"type": "Expression"
+							},
+							"condition": {
+								"value": "@if(equals(length(pipeline().parameters.table_name), 0), not(equals(pipeline().parameters.table_name, item().tablename_source)), contains(pipeline().parameters.table_name, item().tablename_source))\n\n",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"table_name": {
+						"type": "array",
+						"defaultValue": []
+					}
+				},
+				"annotations": [],
+				"lastPublishTime": "2024-09-25T15:52:38Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/json_source_info')]",
+				"[concat(variables('factoryId'), '/datasets/gcdev_sqldb_link')]",
+				"[concat(variables('factoryId'), '/datasets/parquet_sink')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/03 - copy_airlabs_restapi')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "web_key_vault",
+						"description": "Copy",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": true,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "GET",
+							"headers": {},
+							"url": "https://gcdev-keyvault.vault.azure.net/secrets/airlabs-api-key/631c92f35544447dbe710f372405038f?api-version=7.0",
+							"authentication": {
+								"type": "MSI",
+								"resource": "https://vault.azure.net/"
+							}
+						}
+					},
+					{
+						"name": "Copy data1",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "web_key_vault",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET"
+							},
+							"sink": {
+								"type": "JsonSink",
+								"storeSettings": {
+									"type": "AzureBlobFSWriteSettings"
+								},
+								"formatSettings": {
+									"type": "JsonWriteSettings"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"path": "$['response']"
+										},
+										"sink": {
+											"path": "$['response']"
+										}
+									}
+								],
+								"collectionReference": ""
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "airlabs_rest_source",
+								"type": "DatasetReference",
+								"parameters": {
+									"url": {
+										"value": "@activity('web_key_vault').output.value",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "json_source_info",
+								"type": "DatasetReference",
+								"parameters": {
+									"filename": {
+										"value": "@concat('airlines/Date_Part=', formatDateTime(utcnow(), 'yyyy-MM-dd'), '/airlines.json')",
+										"type": "Expression"
+									},
+									"container": "raw"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": [],
+				"lastPublishTime": "2024-09-25T16:07:19Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/json_source_info')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/04 - publish_to_sql')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "lookup_publish",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "JsonSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "JsonReadSettings"
+								}
+							},
+							"dataset": {
+								"referenceName": "json_source_info",
+								"type": "DatasetReference",
+								"parameters": {
+									"filename": "Publish_Table.json",
+									"container": "manualfile"
+								}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach1",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "Wait1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('lookup_publish').output.value",
+								"type": "Expression"
+							},
+							"activities": [
+								{
+									"name": "Copy data1_copy1",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureDatabricksDeltaLakeSource",
+											"exportSettings": {
+												"type": "AzureDatabricksDeltaLakeExportCommand"
+											}
+										},
+										"sink": {
+											"type": "SqlDWSink",
+											"allowCopyCommand": true,
+											"copyCommandSettings": {},
+											"tableOption": "autoCreate",
+											"disableMetricsCollection": false
+										},
+										"enableStaging": true,
+										"stagingSettings": {
+											"linkedServiceName": {
+												"referenceName": "gcdevdevadls_sink_link",
+												"type": "LinkedServiceReference"
+											},
+											"path": "manualfile"
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DatabricksDeltaLakeSource",
+											"type": "DatasetReference",
+											"parameters": {
+												"table_name": {
+													"value": "@item().source_table_name",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "asasqldw_sink",
+											"type": "DatasetReference",
+											"parameters": {
+												"table_name": "@item().publish_table_name"
+											}
+										}
+									]
+								}
+							]
+						}
+					},
+					{
+						"name": "Wait1",
+						"type": "Wait",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "09 - dw_status_job",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"waitTimeInSeconds": 3
+						}
+					},
+					{
+						"name": "09 - dw_status_job",
+						"type": "ExecutePipeline",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "lookup_publish",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "09 - dw_status_job",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"status": "Start"
+							}
+						}
+					},
+					{
+						"name": "09 - dw_status_job1",
+						"type": "ExecutePipeline",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "ForEach1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "09 - dw_status_job",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"status": "Stop"
+							}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/json_source_info')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/08 - excel_to_email')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Web1",
+						"type": "WebActivity",
+						"dependsOn": [
+							{
+								"activity": "Lookup1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {},
+							"url": "https://prod-17.uksouth.logic.azure.com:443/workflows/66558a1ad16045c9b8d7ce53e2726317/triggers/When_a_HTTP_request_is_received/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2FWhen_a_HTTP_request_is_received%2Frun&sv=1.0&sig=LDkBoT-Q2gevhNaNGgboBslR0mjNDIntmKQSYrdyxvU",
+							"body": {
+								"value": "@activity('Lookup1').output.value",
+								"type": "Expression"
+							}
+						}
+					},
+					{
+						"name": "Lookup1",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "ExcelSource",
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								}
+							},
+							"dataset": {
+								"referenceName": "excel_source",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/excel_source')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/06 - master')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "01 - copy_csv_source",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "01 - copy_csv_source",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "02 - copy_sql_db",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "02 - copy_sql_db",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "03 - copy_airlabs_restapi",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "03 - copy_airlabs_restapi",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "05 - refresh_databricks_notebooks",
+						"type": "ExecutePipeline",
+						"dependsOn": [],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "05 - refresh_databricks_notebooks",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {
+								"layer_name": "raw"
+							}
+						}
+					},
+					{
+						"name": "ForEach1",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "01 - copy_csv_source",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "02 - copy_sql_db",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "03 - copy_airlabs_restapi",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							},
+							{
+								"activity": "05 - refresh_databricks_notebooks",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@pipeline().parameters.layer_names_to_run",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "05 - refresh_databricks_notebooks_repeat",
+									"type": "ExecutePipeline",
+									"dependsOn": [],
+									"policy": {
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"pipeline": {
+											"referenceName": "05 - refresh_databricks_notebooks",
+											"type": "PipelineReference"
+										},
+										"waitOnCompletion": true,
+										"parameters": {
+											"layer_name": {
+												"value": "@item().layer_names_to_run",
+												"type": "Expression"
+											}
+										}
+									}
+								}
+							]
+						}
+					},
+					{
+						"name": "04 - publish_to_sql",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "ForEach1",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "04 - publish_to_sql",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					},
+					{
+						"name": "08 - excel_to_email",
+						"type": "ExecutePipeline",
+						"dependsOn": [
+							{
+								"activity": "04 - publish_to_sql",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"pipeline": {
+								"referenceName": "08 - excel_to_email",
+								"type": "PipelineReference"
+							},
+							"waitOnCompletion": true,
+							"parameters": {}
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"layer_names_to_run": {
+						"type": "array",
+						"defaultValue": [
+							"raw",
+							"cleansed",
+							"data_quality_checks",
+							"mart",
+							"data_quality_mart"
+						]
+					}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/01 - copy_csv_source')]",
+				"[concat(variables('factoryId'), '/pipelines/02 - copy_sql_db')]",
+				"[concat(variables('factoryId'), '/pipelines/03 - copy_airlabs_restapi')]",
+				"[concat(variables('factoryId'), '/pipelines/04 - publish_to_sql')]",
+				"[concat(variables('factoryId'), '/pipelines/08 - excel_to_email')]"
+			]
+		}
+	]
+}

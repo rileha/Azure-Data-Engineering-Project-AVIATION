@@ -1,0 +1,72 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "gcdev-adf"
+		},
+		"AzureKeyVault1_properties_typeProperties_baseUrl": {
+			"value": "https://gcdev-keyvault.vault.azure.net/"
+		},
+		"airlabs_rest_source_properties_typeProperties_url": {
+			"value": "https://airlabs.co/api/v9/airlines"
+		},
+		"asasqldw_sink_properties_typeProperties_server": {
+			"value": "gcdev-sqlserverdev.database.windows.net"
+		},
+		"asasqldw_sink_properties_typeProperties_database": {
+			"value": "gcdevsqldw"
+		},
+		"asasqldw_sink_properties_typeProperties_userName": {
+			"value": "sqladmin"
+		},
+		"blob_storage_source_properties_typeProperties_connectionString_secretName": {
+			"value": "blob-source-connection"
+		},
+		"databricks_link_properties_typeProperties_existingClusterId": {
+			"value": "1017-093846-blt91uz2"
+		},
+		"gcdev_sqldb_source_properties_typeProperties_server": {
+			"value": "gcdev-sqldbserver.database.windows.net"
+		},
+		"gcdev_sqldb_source_properties_typeProperties_database": {
+			"value": "gcdev-sqldb"
+		},
+		"gcdev_sqldb_source_properties_typeProperties_userName": {
+			"value": "sqladmin"
+		},
+		"gcdevdevadls_sink_link_properties_typeProperties_url": {
+			"value": "https://gcdevadlsdev.dfs.core.windows.net"
+		},
+		"gcdevdevadls_sink_link_properties_typeProperties_tenant": {
+			"value": "8c3350c5-de17-460b-9cac-d8bf0f1257dd"
+		},
+		"gcdevdevadls_sink_link_properties_typeProperties_servicePrincipalId": {
+			"value": "d42c04c3-6a39-46d3-834f-95f83d18d7da"
+		},
+		"gcdevsourceadls_link_properties_typeProperties_url": {
+			"value": "https://gcdevsourceadls.dfs.core.windows.net"
+		},
+		"gcdevsourceadls_link_properties_typeProperties_tenant": {
+			"value": "8c3350c5-de17-460b-9cac-d8bf0f1257dd"
+		},
+		"gcdevsourceadls_link_properties_typeProperties_servicePrincipalId": {
+			"value": "d42c04c3-6a39-46d3-834f-95f83d18d7da"
+		},
+		"sqldatabase_sink_properties_typeProperties_server": {
+			"value": "gcdev-sqlserverdev.database.windows.net"
+		},
+		"sqldatabase_sink_properties_typeProperties_database": {
+			"value": "gcdevsqldbdev"
+		},
+		"sqldatabase_sink_properties_typeProperties_userName": {
+			"value": "sqladmin"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}
