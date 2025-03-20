@@ -1,0 +1,22 @@
+{
+	"name": "gcdevsourceadls_link",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "AzureBlobFS",
+		"typeProperties": {
+			"url": "https://gcdevsourceadls.dfs.core.windows.net",
+			"tenant": "8c3350c5-de17-460b-9cac-d8bf0f1257dd",
+			"servicePrincipalId": "d42c04c3-6a39-46d3-834f-95f83d18d7da",
+			"servicePrincipalCredentialType": "ServicePrincipalKey",
+			"servicePrincipalCredential": {
+				"type": "AzureKeyVaultSecret",
+				"store": {
+					"referenceName": "AzureKeyVault1",
+					"type": "LinkedServiceReference"
+				},
+				"secretName": "data-app-secret"
+			}
+		}
+	}
+}

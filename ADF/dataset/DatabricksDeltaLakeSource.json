@@ -1,0 +1,24 @@
+{
+	"name": "DatabricksDeltaLakeSource",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "databricks_deltalake_link",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"table_name": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "AzureDatabricksDeltaLakeDataset",
+		"typeProperties": {
+			"database": "mart_gcdev",
+			"table": {
+				"value": "@dataset().table_name",
+				"type": "Expression"
+			}
+		},
+		"schema": []
+	}
+}
